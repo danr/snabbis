@@ -27,22 +27,6 @@ export const enum ContentType {
   Hook,
 }
 
-export type Content
-  = Array<VNode | undefined  | null | boolean>
-  | VNode
-  | string
-  | null
-  | undefined
-  | boolean
-  | { type: ContentType.Key, data: string | number}
-  | { type: ContentType.Props, data: Props }
-  | { type: ContentType.Attrs, data: Attrs }
-  | { type: ContentType.Classes, data: Classes }
-  | { type: ContentType.Style, data: VNodeStyle }
-  | { type: ContentType.Dataset, data: Dataset }
-  | { type: ContentType.On, data: On }
-  | { type: ContentType.Hook, data: Hooks }
-
 /**
 Make a VNode
 
@@ -52,7 +36,15 @@ Make a VNode
   toHTML(tag('table .grid12 .tiny #mainTable'))
   // => '<table id="mainTable" class="grid12 tiny"></table>'
 
-You can nest tags and use strings for text:
+  toHTML(tag('.green'))
+  // => '<div class="green"></div>'
+
+You can use strings for text:
+
+  toHTML(tag('span', 'Loreen ispun'))
+  // => '<span>Loreen ispun</span>'
+
+You can nest tags:
 
   toHTML(
     tag('div',
@@ -61,7 +53,7 @@ You can nest tags and use strings for text:
       tag('span', 'world')))
   // => '<div>Announcement: <span>hello</span> <span>world</span></div>'
 
-It's ok to pass arrays:
+You can pass arrays:
 
   const arr = ['apa', 'bepa']
   toHTML(tag('div', arr.map(e => tag('span', e))))
@@ -190,13 +182,23 @@ export module Content {
   }
 
   /**
-  Set one class
+  Set one or more classes
 
     toHTML(tag('div', S.classed('navbar')))
     // => '<div class="navbar"></div>'
+
+    toHTML(tag('div', S.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
+    // => '<div class="colourless green idea sleeping furious"></div>'
+
+  Since you cannot have class names with spaces, the string is split on whitespace:
+
+    toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
+    // => '<div class="colourless green idea sleeping furious"></div>'
   */
-  export function classed(c: string): Content {
-    return classes({[c]: true})
+  export function classed(...classnames: string[]): Content {
+    const d = {} as Record<string, boolean>
+    classnames.forEach(names => names.trim().split(/\s+/g).forEach(name => d[name] = true))
+    return classes(d)
   }
 
   /**
@@ -321,6 +323,23 @@ function imprint<T>(base: Record<string, T>, more: Record<string, T>) {
     base[k] = more[k]
   }
 }
+
+/** Content to put in a `tag` */
+export type Content
+  = Array<VNode | undefined  | null | boolean>
+  | VNode
+  | string
+  | null
+  | undefined
+  | boolean
+  | { type: ContentType.Key, data: string | number}
+  | { type: ContentType.Props, data: Props }
+  | { type: ContentType.Attrs, data: Attrs }
+  | { type: ContentType.Classes, data: Classes }
+  | { type: ContentType.Style, data: VNodeStyle }
+  | { type: ContentType.Dataset, data: Dataset }
+  | { type: ContentType.On, data: On }
+  | { type: ContentType.Hook, data: Hooks }
 
 /** Convenience export of a patch function with everything included */
 export const patch = snabbdom.init([

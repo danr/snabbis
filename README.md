@@ -3,7 +3,6 @@
 > An opinionated domain specific language for snabbdom.
 
 ## API overview
-* Content
 * tag
 * module Content
   * id
@@ -18,15 +17,13 @@
   * hook
   * props
   * dataset
+* Content
 * patch
 * init
 * h
 * VNode
 * VNodeData
 ## Documentation
-* **Content**: `typeof Content`
-
-  
 * **tag**: `(tag_name_and_classes_and_id: string, ...content: Array<Content>) => vnode.VNode`
 
   Make a VNode
@@ -41,7 +38,19 @@
   // => '<table id="mainTable" class="grid12 tiny"></table>'
   ```
 
-  You can nest tags and use strings for text:
+  ```typescript
+  toHTML(tag('.green'))
+  // => '<div class="green"></div>'
+  ```
+
+  You can use strings for text:
+
+  ```typescript
+  toHTML(tag('span', 'Loreen ispun'))
+  // => '<span>Loreen ispun</span>'
+  ```
+
+  You can nest tags:
 
   ```typescript
   toHTML(
@@ -52,7 +61,7 @@
   // => '<div>Announcement: <span>hello</span> <span>world</span></div>'
   ```
 
-  It's ok to pass arrays:
+  You can pass arrays:
 
   ```typescript
   const arr = ['apa', 'bepa']
@@ -122,13 +131,25 @@
   toHTML(tag('div', S.classes({nav: true}), S.classes({nav: false})))
      // => '<div></div>'
   ```
-* **classed**: `(c: string) => Content`
+* **classed**: `(...classnames: Array<string>) => Content`
 
-  Set one class
+  Set one or more classes
 
   ```typescript
   toHTML(tag('div', S.classed('navbar')))
      // => '<div class="navbar"></div>'
+  ```
+
+  ```typescript
+  toHTML(tag('div', S.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
+     // => '<div class="colourless green idea sleeping furious"></div>'
+  ```
+
+  Since you cannot have class names with spaces, the string is split on whitespace:
+
+  ```typescript
+  toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
+     // => '<div class="colourless green idea sleeping furious"></div>'
   ```
 * **styles**: `(styles: VNodeStyle) => Content`
 
@@ -232,6 +253,9 @@
   tag('div', S.dataset({foo: 'bar'})).data.dataset.foo
      // => 'bar'
   ```
+* **Content**: `typeof Content`
+
+  Content to put in a `tag`
 * **patch**: `(oldVnode: vnode.VNode | Element, vnode: vnode.VNode) => vnode.VNode`
 
   
