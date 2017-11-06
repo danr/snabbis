@@ -16,56 +16,45 @@ import { Props } from 'snabbdom/modules/props'
 import { Dataset } from 'snabbdom/modules/dataset'
 import { Attrs } from 'snabbdom/modules/attributes'
 
-export const enum ContentType {
-  Key,
-  Props,
-  Attrs,
-  Classes,
-  Style,
-  Dataset,
-  On,
-  Hook,
-}
-
 /**
 Make a VNode
 
-  toHTML(tag('span#faq.right'))
-  // => '<span id="faq" class="right"></span>'
+    toHTML(tag('span#faq.right'))
+    // => '<span id="faq" class="right"></span>'
 
-  toHTML(tag('table .grid12 .tiny #mainTable'))
-  // => '<table id="mainTable" class="grid12 tiny"></table>'
+    toHTML(tag('table .grid12 .tiny #mainTable'))
+    // => '<table id="mainTable" class="grid12 tiny"></table>'
 
-  toHTML(tag('.green'))
-  // => '<div class="green"></div>'
+    toHTML(tag('.green'))
+    // => '<div class="green"></div>'
 
 You can use strings for text:
 
-  toHTML(tag('span', 'Loreen ispun'))
-  // => '<span>Loreen ispun</span>'
+    toHTML(tag('span', 'Loreen ispun'))
+    // => '<span>Loreen ispun</span>'
 
 You can nest tags:
 
-  toHTML(tag('div',
-    'Announcement: ',
-    tag('span', 'hello'), ' ',
-    tag('span', 'world')))
-  // => '<div>Announcement: <span>hello</span> <span>world</span></div>'
+    toHTML(tag('span', 'Announcement: ', tag('em', 'hello world'), '!')
+    // => '<span>Announcement: <em>hello world</em>!</span>'
 
 You can pass arrays:
 
-  const arr = ['apa', 'bepa']
-  toHTML(tag('div', arr.map(e => tag('span', e))))
-  // => '<div><span>apa</span><span>bepa</span></div>'
+    const arr = ['apa', 'bepa']
+    toHTML(tag('div', arr.map(e => tag('span', e))))
+    // => '<div><span>apa</span><span>bepa</span></div>'
 
-You may also pass booleans, undefined and null and those will be filtered out:
+You may also pass booleans, undefined/null and those will be filtered out:
 
-  const arr = ['apa', 'bepa']
-  toHTML(tag('div',
-    arr[0] == 'apa' || 'first',
-    arr[1] == 'apa' || 'second',
-    arr[2]))
-  // => '<div>second</div>'
+    const x = 1
+    const y = 2
+    const largest = [x > y && 'x largest', x < y && 'y largest']
+    toHTML(tag('span', largest))
+    // => '<span>y largest</span>'
+
+    const d = {b: 3, c: 4}
+    toHTML(tag('span', d['a'], d['b']))
+    // => '<span>3</span>'
 
 The other kinds of content to the tag function is documented by their respective function.
 
@@ -91,7 +80,7 @@ import { VNode } from 'snabbis'
 
 */
 export function tag(tag_name_and_classes_and_id: string, ...content: Content[]): VNode {
-  let children = [] as Array<VNode | undefined | boolean | null>
+  let children = [] as Array<VNode>
   let key = undefined as string | number | undefined
   let props = {} as Props
   let attrs = {} as Attrs
@@ -114,13 +103,21 @@ export function tag(tag_name_and_classes_and_id: string, ...content: Content[]):
       }
     }
   })
-  content.map(b => {
-    if (b instanceof Array) {
-      children.push(...b)
-    } else if (typeof b == 'string') {
+  function push(b: VNode | string | number | undefined | null | boolean) {
+    if (typeof b == 'string') {
       children.push(vnode.vnode(undefined, undefined, undefined, b, undefined))
+    } else if (typeof b == 'number') {
+      push(b.toString())
     } else if (b === undefined || b === null || typeof b == 'boolean') {
       // skip
+    } else {
+      // VNode
+      children.push(b)
+    }
+  }
+  content.map(b => {
+    if (b instanceof Array) {
+      b.forEach(push)
     } else if (has_type(b)) {
       switch (b.type) {
         case ContentType.Key:
@@ -145,11 +142,11 @@ export function tag(tag_name_and_classes_and_id: string, ...content: Content[]):
         break;
       }
     } else {
-      children.push(b)
+      push(b)
     }
   })
   const data = {props, attrs, class: classes, style, dataset, on, hook, key}
-  return h(tag_name, data, children.filter(b => typeof b != 'boolean') as any)
+  return h(tag_name, data, children)
 }
 
 export module Content {
@@ -313,7 +310,7 @@ export module Content {
 }
 
 function has_type<R extends {type: ContentType}>(x: any): x is R {
-  return x.type !== undefined
+  return typeof x == 'object' && x.type !== undefined
 }
 
 function imprint<T>(base: Record<string, T>, more: Record<string, T>) {
@@ -322,14 +319,26 @@ function imprint<T>(base: Record<string, T>, more: Record<string, T>) {
   }
 }
 
+export const enum ContentType {
+  Key,
+  Props,
+  Attrs,
+  Classes,
+  Style,
+  Dataset,
+  On,
+  Hook,
+}
+
 /** Content to put in a `tag` */
 export type Content
-  = Array<VNode | undefined  | null | boolean>
+  = Array<VNode | undefined | null | boolean | number | string>
   | VNode
-  | string
   | null
   | undefined
   | boolean
+  | number
+  | string
   | { type: ContentType.Key, data: string | number}
   | { type: ContentType.Props, data: Props }
   | { type: ContentType.Attrs, data: Attrs }
