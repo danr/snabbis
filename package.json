@@ -20,11 +20,14 @@
     "snabbis": "0.1.0"
   },
   "scripts": {
-    "pretest": "tsc test/*.ts",
+    "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, Content as S, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",
     "test": "tape test/*js | tap-diff",
     "precoverage": "tsc test/*.ts",
     "coverage": "covert test/*js",
-    "compile": "tsc"
+    "compile": "tsc",
+    "prebuild": "tsc",
+    "build": "uglifyjs snabbis.js --mangle --toplevel --compress > snabbis.min.js",
+    "readme": "> README.md typescript-doctest src/*.ts -i header.md -s '## API overview' --toc -s '## Documentation' --doc"
   },
   "keywords": [
     "virtual",
