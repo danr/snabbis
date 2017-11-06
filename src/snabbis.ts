@@ -56,7 +56,7 @@ You may also pass booleans, undefined/null and those will be filtered out:
     toHTML(tag('span', d['a'], d['b']))
     // => '<span>3</span>'
 
-The other kinds of content to the tag function is documented by their respective function.
+The other kinds of content to the tag function are documented by their respective function.
 
 Note: this documentation has imported `snabbis` like so:
 
@@ -310,7 +310,7 @@ export module Content {
 }
 
 function has_type<R extends {type: ContentType}>(x: any): x is R {
-  return typeof x == 'object' && x.type !== undefined
+  return typeof x == 'object' && x != null && 'type' in x && x.type !== undefined
 }
 
 function imprint<T>(base: Record<string, T>, more: Record<string, T>) {

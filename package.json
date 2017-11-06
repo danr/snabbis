@@ -16,8 +16,7 @@
     "tape": "^4.8.0",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
-    "snabbdom-to-html": "^3.1.1",
-    "snabbis": "0.1.0"
+    "snabbdom-to-html": "^3.1.1"
   },
   "scripts": {
     "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, Content as S, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",

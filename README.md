@@ -81,7 +81,7 @@
   // => '<span>3</span>'
   ```
 
-  The other kinds of content to the tag function is documented by their respective function.
+  The other kinds of content to the tag function are documented by their respective function.
 
   Note: this documentation has imported `snabbis` like so:
 
