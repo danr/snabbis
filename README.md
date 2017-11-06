@@ -53,11 +53,10 @@
   You can nest tags:
 
   ```typescript
-  toHTML(
-  tag('div',
-    'Announcement: ',
-    tag('span', 'hello'), ' ',
-    tag('span', 'world')))
+  toHTML(tag('div',
+  'Announcement: ',
+  tag('span', 'hello'), ' ',
+  tag('span', 'world')))
   // => '<div>Announcement: <span>hello</span> <span>world</span></div>'
   ```
 
@@ -73,11 +72,10 @@
 
   ```typescript
   const arr = ['apa', 'bepa']
-  toHTML(
-  tag('div',
-     arr[0] == 'apa' || 'first',
-     arr[1] == 'apa' || 'second',
-     arr[2]))
+  toHTML(tag('div',
+  arr[0] == 'apa' || 'first',
+  arr[1] == 'apa' || 'second',
+  arr[2]))
   // => '<div>second</div>'
   ```
 
@@ -97,7 +95,7 @@
   const toHTML = require('snabbdom-to-html')
   ```
 
-  The documentation alos uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
+  The documentation also uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
 
   ```typescript
   import { VNode } from 'snabbis'

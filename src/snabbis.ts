@@ -46,11 +46,10 @@ You can use strings for text:
 
 You can nest tags:
 
-  toHTML(
-    tag('div',
-      'Announcement: ',
-      tag('span', 'hello'), ' ',
-      tag('span', 'world')))
+  toHTML(tag('div',
+    'Announcement: ',
+    tag('span', 'hello'), ' ',
+    tag('span', 'world')))
   // => '<div>Announcement: <span>hello</span> <span>world</span></div>'
 
 You can pass arrays:
@@ -62,11 +61,10 @@ You can pass arrays:
 You may also pass booleans, undefined and null and those will be filtered out:
 
   const arr = ['apa', 'bepa']
-  toHTML(
-    tag('div',
-       arr[0] == 'apa' || 'first',
-       arr[1] == 'apa' || 'second',
-       arr[2]))
+  toHTML(tag('div',
+    arr[0] == 'apa' || 'first',
+    arr[1] == 'apa' || 'second',
+    arr[2]))
   // => '<div>second</div>'
 
 The other kinds of content to the tag function is documented by their respective function.
@@ -85,7 +83,7 @@ The documentation also uses `toHTML` from the `snabbdom-to-html` package:
 const toHTML = require('snabbdom-to-html')
 ```
 
-The documentation alos uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
+The documentation also uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
 
 ```typescript
 import { VNode } from 'snabbis'
