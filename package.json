@@ -1,6 +1,6 @@
 {
   "name": "snabbis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Opinionated snabbdom domain specific language.",
   "author": "Dan Rosén",
   "license": "MIT",
