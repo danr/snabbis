@@ -189,10 +189,17 @@ export module Content {
 
     toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
     // => '<div class="colourless green idea sleeping furious"></div>'
+
+  Whitespace-only strings vanish:
+
+    toHTML(tag('div', S.classed('', ' ')))
+    // => '<div></div>'
   */
   export function classed(...classnames: string[]): Content {
     const d = {} as Record<string, boolean>
-    classnames.forEach(names => names.trim().split(/\s+/g).forEach(name => d[name] = true))
+    const names = ([] as string[]).concat(...
+      classnames.map(names => names.trim().split(/\s+/g)))
+    names.filter(name => name && name.trim() != '').forEach(name => d[name] = true)
     return classes(d)
   }
 

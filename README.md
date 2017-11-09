@@ -151,6 +151,13 @@
   toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
   // => '<div class="colourless green idea sleeping furious"></div>'
   ```
+
+  Whitespace-only strings vanish:
+
+  ```typescript
+  toHTML(tag('div', S.classed('', ' ')))
+  // => '<div></div>'
+  ```
 * **styles**: `(styles: VNodeStyle) => Content`
 
   Set some styles
