@@ -1,6 +1,6 @@
 {
   "name": "snabbis",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Opinionated way to use snabbdom together with reactive-lens.",
   "author": "Dan Rosén",
   "license": "MIT",
