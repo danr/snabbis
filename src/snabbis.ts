@@ -396,11 +396,11 @@ export module Content {
     return {type: ContentType.Dataset, data: dataset}
   }
 
-  export function Input(store: Store<string>, onSubmit?: () => void, ...content: Content[]) {
+  export function Input(store: Store<string>, onEnter?: () => void, ...content: Content[]) {
     return tag('input',
       S.props({ value: store.get() }),
       S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value)),
-      onSubmit && S.on('submit')(onSubmit),
+      onEnter && S.on('keydown')((e: KeyboardEvent) => e.key == 'Enter' && onEnter()),
       ...content)
   }
 

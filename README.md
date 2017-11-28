@@ -319,7 +319,7 @@
      tag('div', S.dataset({foo: 'bar'})).data.dataset.foo
      // => 'bar'
   ```
-* **Input**: `(store: Store<string>, onSubmit?: () => void, ...content: Array<Content>) => vnode.VNode`
+* **Input**: `(store: Store<string>, onEnter?: () => void, ...content: Array<Content>) => vnode.VNode`
 
   
 * **Checkbox**: `(store: Store<boolean>, ...content: Array<Content>) => vnode.VNode`
