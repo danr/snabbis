@@ -1,12 +1,13 @@
 {
   "name": "snabbis",
-  "version": "0.1.2",
-  "description": "Opinionated snabbdom domain specific language.",
+  "version": "0.2.0",
+  "description": "Opinionated way to use snabbdom together with reactive-lens.",
   "author": "Dan Rosén",
   "license": "MIT",
   "main": "snabbis.js",
   "typings": "snabbis.d.ts",
   "dependencies": {
+    "reactive-lens": "^0.1.2",
     "snabbdom": "^0.7.0"
   },
   "devDependencies": {
@@ -19,19 +20,28 @@
     "snabbdom-to-html": "^3.1.1"
   },
   "scripts": {
-    "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, Content as S, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",
+    "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, S, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",
     "test": "tape test/*js | tap-diff",
     "precoverage": "tsc test/*.ts",
     "coverage": "covert test/*js",
     "compile": "tsc",
     "prebuild": "tsc",
     "build": "uglifyjs snabbis.js --mangle --toplevel --compress > snabbis.min.js",
-    "readme": "> README.md typescript-doctest src/*.ts -i header.md -s '## API overview' --toc -s '## Documentation' --doc"
+    "readme": "> README.md typescript-doctest src/*.ts -i header.md -s '## API overview' --toc -s '' -s '## Documentation' --doc"
   },
   "keywords": [
-    "virtual",
     "dom",
-    "snabbdom"
+    "functional",
+    "immutable",
+    "lens",
+    "pure",
+    "reactive",
+    "snabbdom",
+    "snabbis",
+    "store",
+    "vdom",
+    "virtual",
+    "vnode"
   ],
   "directories": {
     "test": "test"

@@ -16,6 +16,83 @@ import { Props } from 'snabbdom/modules/props'
 import { Dataset } from 'snabbdom/modules/dataset'
 import { Attrs } from 'snabbdom/modules/attributes'
 
+import { VNode } from "snabbdom/vnode"
+import { Store } from "reactive-lens"
+
+type Patcher = (vnode: VNode) => void
+
+function connect<S>(patcher: Patcher, store: Store<S>, setup_view: (store: Store<S>) => () => VNode): () => void {
+  const view = setup_view(store)
+  function redraw() {
+    store.transaction(() => {
+      patcher(view())
+    })
+  }
+  const off = store.on(redraw)
+  redraw()
+  return off
+}
+
+function setup(patch: Patch, root: HTMLElement): Patcher {
+  while (root.lastChild) {
+    root.removeChild(root.lastChild)
+  }
+
+  const container = document.createElement('div')
+  root.appendChild(container)
+  let vnode = patch(container, snabbdom.h('div'))
+
+  return new_vnode => { vnode = patch(vnode, new_vnode) }
+}
+
+const full_patch = snabbdom.init([
+  snabbdom_style,
+  snabbdom_eventlisteners,
+  snabbdom_class,
+  snabbdom_props,
+  snabbdom_dataset,
+  snabbdom_attributes,
+])
+
+/** Attach a view to a reactive lens store initialized at some state.
+
+Suggested usage:
+
+```typescript
+    import * as App from "./App"
+    import * as snabbis from "snabbis"
+    const root = document.getElementById('root') as HTMLElement
+    const reattach = snabbis.attach(root, App.init(), App.App)
+
+    declare const module: any;
+    declare const require: any;
+
+    if (module.hot) {
+      module.hot.accept('./App.ts', (_: any) => {
+        try {
+          const NextApp = require('./App.ts')
+          reattach(NextApp.App)
+        } catch (e) {
+          console.error(e)
+        }
+      })
+    }
+```
+
+Returns the reattach function. */
+export function attach<S>(root: HTMLElement, init_state: S, setup_view: (store: Store<S>) => () => VNode, patch: Patch = full_patch): (setup_next_view: (store: Store<S>) => () => VNode) => void {
+  const patcher = setup(patch, root)
+  let store = Store.init(init_state)
+  let off = connect(patcher, store, setup_view)
+  return setup_next_view => {
+    off()
+    store = Store.init(store.get())
+    off = connect(patcher, store, setup_next_view)
+  }
+}
+
+
+
 /**
 Make a VNode
 
@@ -61,7 +138,7 @@ The other kinds of content to the tag function are documented by their respectiv
 Note: this documentation has imported `snabbis` like so:
 
 ```typescript
-import { tag, Content as S } from 'snabbis'
+import { tag, S } from 'snabbis'
 ```
 
 Feel free to rename `tag` or `S` to whatever you feel beautiful.
@@ -206,21 +283,11 @@ export module Content {
   /**
   Set some styles
 
-    toHTML(tag('div', S.styles({display: 'inline-block', textTransform: 'uppercase'})))
+    toHTML(tag('div', S.style({display: 'inline-block', textTransform: 'uppercase'})))
     // => '<div style="display: inline-block; text-transform: uppercase"></div>'
   */
-  export function styles(styles: VNodeStyle): Content {
+  export function style(styles: VNodeStyle): Content {
     return {type: ContentType.Style, data: styles}
-  }
-
-  /**
-  Set one style
-
-    toHTML(tag('div', S.style('display', 'inline-block')))
-    // => '<div style="display: inline-block"></div>'
-  */
-  export function style(k: string, v: string): Content {
-    return styles({[k]: v})
   }
 
   /**
@@ -240,7 +307,7 @@ export module Content {
   }
 
   /**
-  Set the key, used to identify elements for sorting and css animations
+  Set the key, used to identify elements when diffing
 
     tag('div', S.key('example_key')).key
     // => 'example_key'
@@ -258,8 +325,8 @@ export module Content {
     ).data.on.keydown !== undefined
     // => true
   */
-  export function on<N extends keyof HTMLElementEventMap>(name: N): (h: (e: HTMLElementEventMap[N]) => void) => Content {
-    return h => ({type: ContentType.On, data: {[name as string]: h}})
+  export function on<N extends keyof HTMLElementEventMap>(event_name: N): (h: (e: HTMLElementEventMap[N]) => void) => Content {
+    return h => ({type: ContentType.On, data: {[event_name as string]: h}})
   }
 
   /**
@@ -271,22 +338,36 @@ export module Content {
     ).data.on.keydown !== undefined
     // => true
   */
-  export function on_(name: string, h: (e: Event) => void): Content {
-    return ({type: ContentType.On, data: {[name]: h}})
+  export function on_(event_name: string, h: (e: Event) => void): Content {
+    return ({type: ContentType.On, data: {[event_name]: h}})
   }
 
   /**
   Insert a `snabbdom` hook
 
     tag('div',
-      S.hook({
+      S.hook('insert')(
+        (vn: VNode) =>
+          console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
+    ).data.hook.insert !== undefined
+    // => true
+  */
+  export function hook<N extends keyof Hooks>(hook_name: N): (h: Hooks[N]) => Content {
+    return h => ({type: ContentType.Hook, data: {[hook_name as string]: h}})
+  }
+
+  /**
+  Insert `snabbdom` hooks
+
+    tag('div',
+      S.hooks({
         insert: (vn: VNode) =>
           console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
     ).data.hook.insert !== undefined
     // => true
   */
-  export function hook(hook: Hooks): Content {
-    return {type: ContentType.Hook, data: hook}
+  export function hooks(hooks: Hooks): Content {
+    return {type: ContentType.Hook, data: hooks}
   }
 
   /**
@@ -313,6 +394,61 @@ export module Content {
   */
   export function dataset(dataset: Dataset): Content {
     return {type: ContentType.Dataset, data: dataset}
+  }
+
+  export function Input(store: Store<string>, onSubmit?: () => void, ...content: Content[]) {
+    return tag('input',
+      S.props({ value: store.get() }),
+      S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value)),
+      onSubmit && S.on('submit')(onSubmit),
+      ...content)
+  }
+
+  export function Checkbox(store: Store<boolean>, ...content: Content[]) {
+    return tag('input',
+      S.attrs({ type: 'checkbox' }),
+      S.props({ value: store.get(), checked: store.get() }),
+      S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value == 'true')),
+      ...content)
+  }
+
+  export function Button(onClick: () => void, label: string = '', ...content: Content[]) {
+    return tag('input',
+      S.attrs({
+        'type': 'button',
+        value: label
+      }),
+      S.on('click')(onClick),
+      ...content)
+  }
+
+  export function Textarea(store: Store<string>, rows=10, cols=80, ...content: Content[]) {
+    return tag('textarea',
+      S.props({value: store.get()}),
+      S.attrs({rows, cols}),
+      S.on('input')((e: Event) => store.set((e.target as HTMLTextAreaElement).value)),
+      ...content)
+  }
+
+  export function Select(stored: Store<string>, keys: Store<string[]>, option: (key: string, index: number) => VNode, ...content: Content[]) {
+    let off = undefined as undefined | (() => void)
+    return tag('select',
+      S.hook('insert')(
+        (vn: VNode) => {
+          off = stored.ondiff(current => {
+            if (vn.elm) {
+              const i = keys.get().indexOf(current);
+              (vn.elm as HTMLSelectElement).selectedIndex = i
+            }
+          })
+        }),
+      S.hook('remove')(() => off && off()),
+      keys.get().map(option),
+      S.on('change')((e: Event) => {
+        const i = (e.target as HTMLSelectElement).selectedIndex
+        stored.set(keys.get()[i])
+      }),
+      ...content)
   }
 }
 
@@ -355,22 +491,36 @@ export type Content
   | { type: ContentType.On, data: On }
   | { type: ContentType.Hook, data: Hooks }
 
-/** Convenience export of a patch function with everything included */
-export const patch = snabbdom.init([
-  snabbdom_style,
-  snabbdom_eventlisteners,
-  snabbdom_class,
-  snabbdom_props,
-  snabbdom_dataset,
-  snabbdom_attributes,
-])
-
-/** Convenience reexport of `snabbdom`'s `init` function */
-export const init = snabbdom.init
 /** Convenience reexport of `snabbdom`'s `h` */
 export const h = snabbdom_h.h
 /** Convenience reexport of `snabbdom`'s `VNode` */
 export type VNode = vnode.VNode
 /** Convenience reexport of `snabbdom`'s `VNodeData` */
 export type VNodeData = vnode.VNodeData
+/** The type of a snabbdom patch, create one with snabbdom.init */
+export type Patch = (oldVnode: VNode | Element, vnode: VNode) => VNode
+
+export module tags {
+  export const factory = (name: string) => (...content: Content[]) => tag(name, ...content)
+  export const div = factory('div')
+  export const span = factory('span')
+  export const table = factory('table')
+  export const tbody = factory('tbody')
+  export const thead = factory('thead')
+  export const tfoot = factory('tfoot')
+  export const tr = factory('tr')
+  export const td = factory('td')
+  export const th = factory('th')
+  export const h1 = factory('h1')
+  export const h2 = factory('h2')
+  export const h3 = factory('h3')
+  export const h4 = factory('h4')
+  export const h5 = factory('h5')
+  export const h6 = factory('h6')
+  export const li = factory('li')
+  export const ul = factory('ul')
+  export const ol = factory('ol')
+}
+
+export const S = Content
 
