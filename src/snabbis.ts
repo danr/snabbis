@@ -429,6 +429,7 @@ export module s {
     return tag('select',
       s.hook('insert')(
         (vn: VNode) => {
+          console.log('inserted select')
           off = stored.ondiff(current => {
             if (vn.elm) {
               const i = keys.get().indexOf(current);
@@ -436,7 +437,7 @@ export module s {
             }
           })
         }),
-      s.hook('remove')(() => off && off()),
+      s.hook('destroy')(() => off && off()),
       keys.get().map(option),
       s.on('change')((e: Event) => {
         const i = (e.target as HTMLSelectElement).selectedIndex
@@ -539,4 +540,6 @@ export module tags {
   export const li = factory('li')
   export const ul = factory('ul')
   export const ol = factory('ol')
+
+  export const option = factory('option')
 }

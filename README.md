@@ -58,6 +58,7 @@
   * li
   * ul
   * ol
+  * option
 
 ## Documentation
 * **attach**: `<S>(root: HTMLElement, init_state: S, setup_view: (store: Store<S>) => () => vnode.VNode, patch?: Patch) => (setup_next_view: (store: Store<S>) => () => vnode.VNode) => void`
@@ -447,5 +448,8 @@ const {div, span, h1} = tags
 
   
 * **ol**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **option**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
