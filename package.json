@@ -27,7 +27,7 @@
     "compile": "tsc",
     "prebuild": "tsc",
     "build": "uglifyjs snabbis.js --mangle --toplevel --compress > snabbis.min.js",
-    "prepublish": "npm run build && npm run readme",
+    "prepublishOnly": "npm run build && npm run readme",
     "readme": "> README.md typescript-doctest src/*.ts -i header.md -s '## API overview' --toc -s '' -s '## Documentation' --doc"
   },
   "keywords": [
