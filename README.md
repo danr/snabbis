@@ -331,7 +331,7 @@
 * **checkbox**: `(store: Store<boolean>, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **button**: `(onClick: () => void, label?: string, ...tag_data: Array<TagData>) => vnode.VNode`
+* **button**: `(label: string, onClick: () => void, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
 * **textarea**: `(store: Store<string>, rows?: number, cols?: number, ...tag_data: Array<TagData>) => vnode.VNode`

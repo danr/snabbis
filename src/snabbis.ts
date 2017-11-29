@@ -406,7 +406,7 @@ export module s {
       ...tag_data)
   }
 
-  export function button(onClick: () => void, label: string = '', ...tag_data: TagData[]) {
+  export function button(label: string, onClick: () => void, ...tag_data: TagData[]) {
     return tag('input',
       s.attrs({
         'type': 'button',
