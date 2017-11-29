@@ -138,25 +138,18 @@ The other kinds of content to the tag function are documented by their respectiv
 Note: this documentation has imported `snabbis` like so:
 
 ```typescript
-import { tag, S } from 'snabbis'
+import { tag, s } from 'snabbis'
 ```
 
-Feel free to rename `tag` or `S` to whatever you feel beautiful.
-
-The documentation also uses `toHTML` from the `snabbdom-to-html` package:
+Feel free to rename `tag` or `s` to whatever you feel beautiful, example:
 
 ```typescript
-const toHTML = require('snabbdom-to-html')
+import { tag as h } from 'snabbis'
 ```
 
-The documentation also uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
-
-```typescript
-import { VNode } from 'snabbis'
-```
-
+The documentation also uses `toHTML` from the `snabbdom-to-html`.
 */
-export function tag(tag_name_and_classes_and_id: string, ...content: Content[]): VNode {
+export function tag(tag_name_classes_id: string, ...tag_data: TagData[]): VNode {
   let children = [] as Array<VNode>
   let key = undefined as string | number | undefined
   let props = {} as Props
@@ -167,14 +160,14 @@ export function tag(tag_name_and_classes_and_id: string, ...content: Content[]):
   let on = {} as On
   let hook = {} as Hooks
   let tag_name = 'div'
-  const matches = tag_name_and_classes_and_id.match(/([.#]?[^.#\s]+)/g)
+  const matches = tag_name_classes_id.match(/([.#]?[^.#\s]+)/g)
   ;
   (matches || []).map(x => {
     if (x.length > 0) {
       if (x[0] == '#') {
-        content.push(Content.id(x.slice(1)))
+        tag_data.push(s.id(x.slice(1)))
       } else if (x[0] == '.') {
-        content.push(Content.classed(x.slice(1)))
+        tag_data.push(s.classed(x.slice(1)))
       } else {
         tag_name = x
       }
@@ -192,14 +185,14 @@ export function tag(tag_name_and_classes_and_id: string, ...content: Content[]):
       children.push(b)
     }
   }
-  content.map(b => {
+  tag_data.map(b => {
     if (b instanceof Array) {
       b.forEach(push)
     } else if (has_type(b)) {
       switch (b.type) {
         case ContentType.Key:
           if (key !== undefined && b.data !== key) {
-            console.error('key set twice (first to', key, 'now to', b.data, 'on tag', tag_name_and_classes_and_id, ')')
+            console.error('key set twice (first to', key, 'now to', b.data, 'on tag', tag_name_classes_id, ')')
           }
           key = b.data
         break;
@@ -226,93 +219,94 @@ export function tag(tag_name_and_classes_and_id: string, ...content: Content[]):
   return h(tag_name, data, children)
 }
 
-export module Content {
+export module s {
   /**
   Set the id
 
-    toHTML(tag('div', S.id('root')))
+    toHTML(tag('div', s.id('root')))
     // => '<div id="root"></div>'
   */
-  export function id(id: string): Content {
+  export function id(id: string): TagData {
     return {type: ContentType.Attrs, data: {id}}
   }
 
   /**
   Set some classes
 
-    toHTML(tag('div', S.classes({example: true})))
+    toHTML(tag('div', s.classes({example: true})))
     // => '<div class="example"></div>'
 
-    toHTML(tag('div', S.classes({nav: true, strip: true}), S.classes({'left-side': true})))
+    toHTML(tag('div', s.classes({nav: true, strip: true}), s.classes({'left-side': true})))
     // => '<div class="nav strip left-side"></div>'
 
-    toHTML(tag('div', S.classes({nav: true}), S.classes({nav: false})))
+    toHTML(tag('div', s.classes({nav: true}), s.classes({nav: false})))
     // => '<div></div>'
   */
-  export function classes(classes: Classes): Content {
+  export function classes(classes: Classes): TagData {
     return {type: ContentType.Classes, data: classes}
   }
 
   /**
   Set one or more classes
 
-    toHTML(tag('div', S.classed('navbar')))
+    toHTML(tag('div', s.classed('navbar')))
     // => '<div class="navbar"></div>'
 
-    toHTML(tag('div', S.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
+    toHTML(tag('div', s.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
     // => '<div class="colourless green idea sleeping furious"></div>'
 
   Since you cannot have class names with spaces, the string is split on whitespace:
 
-    toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
+    toHTML(tag('div', s.classed(' colourless green idea sleeping  furious ')))
     // => '<div class="colourless green idea sleeping furious"></div>'
 
   Whitespace-only strings vanish:
 
-    toHTML(tag('div', S.classed('', ' ')))
+    toHTML(tag('div', s.classed('', ' ')))
     // => '<div></div>'
   */
-  export function classed(...classnames: string[]): Content {
+  export function classed(...classnames: string[]): TagData {
     const d = {} as Record<string, boolean>
-    const names = ([] as string[]).concat(...
-      classnames.map(names => names.trim().split(/\s+/g)))
-    names.filter(name => name && name.trim() != '').forEach(name => d[name] = true)
+    (classnames.join(' ').match(/\S+/g) || []).forEach(name => d[name] = true)
     return classes(d)
   }
 
   /**
   Set some styles
 
-    toHTML(tag('div', S.style({display: 'inline-block', textTransform: 'uppercase'})))
+    toHTML(tag('div', s.style({display: 'inline-block', textTransform: 'uppercase'})))
     // => '<div style="display: inline-block; text-transform: uppercase"></div>'
   */
-  export function style(styles: VNodeStyle): Content {
+  export function style(styles: VNodeStyle): TagData {
     return {type: ContentType.Style, data: styles}
   }
+
+  /** Alias for style */
+  export const css = style
 
   /**
   Set some attributes
 
-    toHTML(tag('div', S.attrs({example: 1})))
+    toHTML(tag('div', s.attrs({example: 1})))
     // => '<div example="1"></div>'
 
-    toHTML(tag('div', S.attrs({a: 1, b: 2}), S.attrs({c: 3})))
+    toHTML(tag('div', s.attrs({a: 1, b: 2}), s.attrs({c: 3})))
     // => '<div a="1" b="2" c="3"></div>'
 
-    toHTML(tag('div', S.attrs({a: 1}), S.attrs({a: 2})))
+    toHTML(tag('div', s.attrs({a: 1}), s.attrs({a: 2})))
     // => '<div a="2"></div>'
   */
-  export function attrs(attrs: Attrs): Content {
+  export function attrs(attrs: Attrs): TagData {
     return {type: ContentType.Attrs, data: attrs}
   }
 
   /**
   Set the key, used to identify elements when diffing
 
-    tag('div', S.key('example_key')).key
+    tag('div', s.key('example_key')).key
     // => 'example_key'
   */
-  export function key(key: string | number): Content {
+  export function key(key: string | number): TagData {
     return {type: ContentType.Key, data: key}
   }
 
@@ -320,12 +314,12 @@ export module Content {
   Insert an event handler which is in the `HTMLElementEventMap`
 
     tag('div',
-      S.on('keydown')((e: KeyboardEvent) => {
+      s.on('keydown')((e: KeyboardEvent) => {
         console.log('You pressed', e.char)})
     ).data.on.keydown !== undefined
     // => true
   */
-  export function on<N extends keyof HTMLElementEventMap>(event_name: N): (h: (e: HTMLElementEventMap[N]) => void) => Content {
+  export function on<N extends keyof HTMLElementEventMap>(event_name: N): (h: (e: HTMLElementEventMap[N]) => void) => TagData {
     return h => ({type: ContentType.On, data: {[event_name as string]: h}})
   }
 
@@ -333,12 +327,12 @@ export module Content {
   Insert an event handler with any name
 
     tag('div',
-      S.on_('keydown', (e: Event) => {
+      s.on_('keydown', (e: Event) => {
         console.log('You pressed', (e as KeyboardEvent).char)})
     ).data.on.keydown !== undefined
     // => true
   */
-  export function on_(event_name: string, h: (e: Event) => void): Content {
+  export function on_(event_name: string, h: (e: Event) => void): TagData {
     return ({type: ContentType.On, data: {[event_name]: h}})
   }
 
@@ -346,13 +340,13 @@ export module Content {
   Insert a `snabbdom` hook
 
     tag('div',
-      S.hook('insert')(
+      s.hook('insert')(
         (vn: VNode) =>
           console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
     ).data.hook.insert !== undefined
     // => true
   */
-  export function hook<N extends keyof Hooks>(hook_name: N): (h: Hooks[N]) => Content {
+  export function hook<N extends keyof Hooks>(hook_name: N): (h: Hooks[N]) => TagData {
     return h => ({type: ContentType.Hook, data: {[hook_name as string]: h}})
   }
 
@@ -360,80 +354,80 @@ export module Content {
   Insert `snabbdom` hooks
 
     tag('div',
-      S.hooks({
+      s.hooks({
         insert: (vn: VNode) =>
           console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
     ).data.hook.insert !== undefined
     // => true
   */
-  export function hooks(hooks: Hooks): Content {
+  export function hooks(hooks: Hooks): TagData {
     return {type: ContentType.Hook, data: hooks}
   }
 
   /**
   Set some properties (ambient data attached to dom nodes)
 
-    tag('div', S.props({example: 1})).data.props
+    tag('div', s.props({example: 1})).data.props
     // => {example: 1}
 
-    tag('div', S.props({a: 1, b: 2}), S.props({c: 3})).data.props
+    tag('div', s.props({a: 1, b: 2}), s.props({c: 3})).data.props
     // => {a: 1, b: 2, c: 3}
 
-    tag('div', S.props({a: 1}), S.props({a: 2})).data.props
+    tag('div', s.props({a: 1}), s.props({a: 2})).data.props
     // => {a: 2}
   */
-  export function props(props: Props): Content {
+  export function props(props: Props): TagData {
     return {type: ContentType.Props, data: props}
   }
 
   /**
   Set data attribute
 
-    tag('div', S.dataset({foo: 'bar'})).data.dataset.foo
+    tag('div', s.dataset({foo: 'bar'})).data.dataset.foo
     // => 'bar'
   */
-  export function dataset(dataset: Dataset): Content {
+  export function dataset(dataset: Dataset): TagData {
     return {type: ContentType.Dataset, data: dataset}
   }
 
-  export function Input(store: Store<string>, onEnter?: () => void, ...content: Content[]) {
+  export function input(store: Store<string>, onEnter?: () => void, ...tag_data: TagData[]) {
     return tag('input',
-      S.props({ value: store.get() }),
-      S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value)),
-      onEnter && S.on('keydown')((e: KeyboardEvent) => e.key == 'Enter' && onEnter()),
-      ...content)
+      s.props({ value: store.get() }),
+      s.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value)),
+      onEnter && s.on('keydown')((e: KeyboardEvent) => e.key == 'Enter' && onEnter()),
+      ...tag_data)
   }
 
-  export function Checkbox(store: Store<boolean>, ...content: Content[]) {
+  export function checkbox(store: Store<boolean>, ...tag_data: TagData[]) {
     return tag('input',
-      S.attrs({ type: 'checkbox' }),
-      S.props({ value: store.get(), checked: store.get() }),
-      S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value == 'true')),
-      ...content)
+      s.attrs({ type: 'checkbox' }),
+      s.props({ value: store.get(), checked: store.get() }),
+      s.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value == 'true')),
+      ...tag_data)
   }
 
-  export function Button(onClick: () => void, label: string = '', ...content: Content[]) {
+  export function button(onClick: () => void, label: string = '', ...tag_data: TagData[]) {
     return tag('input',
-      S.attrs({
+      s.attrs({
         'type': 'button',
         value: label
       }),
-      S.on('click')(onClick),
-      ...content)
+      s.on('click')(onClick),
+      ...tag_data)
   }
 
-  export function Textarea(store: Store<string>, rows=10, cols=80, ...content: Content[]) {
+  export function textarea(store: Store<string>, rows=10, cols=80, ...tag_data: TagData[]) {
     return tag('textarea',
-      S.props({value: store.get()}),
-      S.attrs({rows, cols}),
-      S.on('input')((e: Event) => store.set((e.target as HTMLTextAreaElement).value)),
-      ...content)
+      s.props({value: store.get()}),
+      s.attrs({rows, cols}),
+      s.on('input')((e: Event) => store.set((e.target as HTMLTextAreaElement).value)),
+      ...tag_data)
   }
 
-  export function Select(stored: Store<string>, keys: Store<string[]>, option: (key: string, index: number) => VNode, ...content: Content[]) {
+  export function select(stored: Store<string>, keys: Store<string[]>, option: (key: string, index: number) => VNode, ...tag_data: TagData[]) {
     let off = undefined as undefined | (() => void)
     return tag('select',
-      S.hook('insert')(
+      s.hook('insert')(
         (vn: VNode) => {
           off = stored.ondiff(current => {
             if (vn.elm) {
@@ -442,13 +436,13 @@ export module Content {
             }
           })
         }),
-      S.hook('remove')(() => off && off()),
+      s.hook('remove')(() => off && off()),
       keys.get().map(option),
-      S.on('change')((e: Event) => {
+      s.on('change')((e: Event) => {
         const i = (e.target as HTMLSelectElement).selectedIndex
         stored.set(keys.get()[i])
       }),
-      ...content)
+      ...tag_data)
   }
 }
 
@@ -474,7 +468,7 @@ export const enum ContentType {
 }
 
 /** Content to put in a `tag` */
-export type Content
+export type TagData
   = Array<VNode | undefined | null | boolean | number | string>
   | VNode
   | null
@@ -500,10 +494,33 @@ export type VNodeData = vnode.VNodeData
 /** The type of a snabbdom patch, create one with snabbdom.init */
 export type Patch = (oldVnode: VNode | Element, vnode: VNode) => VNode
 
+/** Common tags
+
+Example usage:
+
+```typescript
+import { tags } from "snabbis"
+const {div, span, h1} = tags
+```
+
+*/
 export module tags {
-  export const factory = (name: string) => (...content: Content[]) => tag(name, ...content)
+  export const factory = (name: string) => (...tag_data: TagData[]) => tag(name, ...tag_data)
+
   export const div = factory('div')
   export const span = factory('span')
+  export const p = factory('p')
+  export const pre = factory('pre')
+
+  export const em = factory('em')
+  export const strong = factory('strong')
+
+  export const b = factory('b')
+  export const i = factory('i')
+  export const u = factory('u')
+  export const strike = factory('strike')
+  export const small = factory('small')
+
   export const table = factory('table')
   export const tbody = factory('tbody')
   export const thead = factory('thead')
@@ -511,16 +528,15 @@ export module tags {
   export const tr = factory('tr')
   export const td = factory('td')
   export const th = factory('th')
+
   export const h1 = factory('h1')
   export const h2 = factory('h2')
   export const h3 = factory('h3')
   export const h4 = factory('h4')
   export const h5 = factory('h5')
   export const h6 = factory('h6')
+
   export const li = factory('li')
   export const ul = factory('ul')
   export const ol = factory('ol')
 }
-
-export const S = Content
-

@@ -5,11 +5,12 @@
 ## API overview
 * attach
 * tag
-* module Content
+* module s
   * id
   * classes
   * classed
   * style
+  * css
   * attrs
   * key
   * on
@@ -18,12 +19,12 @@
   * hooks
   * props
   * dataset
-  * Input
-  * Checkbox
-  * Button
-  * Textarea
-  * Select
-* Content
+  * input
+  * checkbox
+  * button
+  * textarea
+  * select
+* TagData
 * h
 * VNode
 * VNodeData
@@ -32,6 +33,15 @@
   * factory
   * div
   * span
+  * p
+  * pre
+  * em
+  * strong
+  * b
+  * i
+  * u
+  * strike
+  * small
   * table
   * tbody
   * thead
@@ -48,7 +58,6 @@
   * li
   * ul
   * ol
-* S
 
 ## Documentation
 * **attach**: `<S>(root: HTMLElement, init_state: S, setup_view: (store: Store<S>) => () => vnode.VNode, patch?: Patch) => (setup_next_view: (store: Store<S>) => () => vnode.VNode) => void`
@@ -79,7 +88,7 @@
   ```
 
   Returns the reattach function. 
-* **tag**: `(tag_name_and_classes_and_id: string, ...content: Array<Content>) => vnode.VNode`
+* **tag**: `(tag_name_classes_id: string, ...tag_data: Array<TagData>) => vnode.VNode`
 
   Make a VNode
 
@@ -141,200 +150,197 @@
   Note: this documentation has imported `snabbis` like so:
 
   ```typescript
-  import { tag, S } from 'snabbis'
+  import { tag, s } from 'snabbis'
   ```
 
-  Feel free to rename `tag` or `S` to whatever you feel beautiful.
-
-  The documentation also uses `toHTML` from the `snabbdom-to-html` package:
+  Feel free to rename `tag` or `s` to whatever you feel beautiful, example:
 
   ```typescript
-  const toHTML = require('snabbdom-to-html')
+  import { tag as h } from 'snabbis'
   ```
 
-  The documentation also uses `VNode` from `snabbdom` which is reexported by `snabbis` for convenience:
-
-  ```typescript
-  import { VNode } from 'snabbis'
-  ```
-### module Content
+  The documentation also uses `toHTML` from the `snabbdom-to-html`.
+### module s
 
 
-* **id**: `(id: string) => Content`
+* **id**: `(id: string) => TagData`
 
   Set the id
 
   ```typescript
-     toHTML(tag('div', S.id('root')))
+     toHTML(tag('div', s.id('root')))
      // => '<div id="root"></div>'
   ```
-* **classes**: `(classes: Record<string, boolean>) => Content`
+* **classes**: `(classes: Record<string, boolean>) => TagData`
 
   Set some classes
 
   ```typescript
-     toHTML(tag('div', S.classes({example: true})))
+     toHTML(tag('div', s.classes({example: true})))
      // => '<div class="example"></div>'
   ```
 
   ```typescript
-     toHTML(tag('div', S.classes({nav: true, strip: true}), S.classes({'left-side': true})))
+     toHTML(tag('div', s.classes({nav: true, strip: true}), s.classes({'left-side': true})))
      // => '<div class="nav strip left-side"></div>'
   ```
 
   ```typescript
-     toHTML(tag('div', S.classes({nav: true}), S.classes({nav: false})))
+     toHTML(tag('div', s.classes({nav: true}), s.classes({nav: false})))
      // => '<div></div>'
   ```
-* **classed**: `(...classnames: Array<string>) => Content`
+* **classed**: `(...classnames: Array<string>) => TagData`
 
   Set one or more classes
 
   ```typescript
-     toHTML(tag('div', S.classed('navbar')))
+     toHTML(tag('div', s.classed('navbar')))
      // => '<div class="navbar"></div>'
   ```
 
   ```typescript
-     toHTML(tag('div', S.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
+     toHTML(tag('div', s.classed('colourless', 'green', 'idea', 'sleeping', 'furious')))
      // => '<div class="colourless green idea sleeping furious"></div>'
   ```
 
   Since you cannot have class names with spaces, the string is split on whitespace:
 
   ```typescript
-     toHTML(tag('div', S.classed(' colourless green idea sleeping  furious ')))
+     toHTML(tag('div', s.classed(' colourless green idea sleeping  furious ')))
      // => '<div class="colourless green idea sleeping furious"></div>'
   ```
 
   Whitespace-only strings vanish:
 
   ```typescript
-     toHTML(tag('div', S.classed('', ' ')))
+     toHTML(tag('div', s.classed('', ' ')))
      // => '<div></div>'
   ```
-* **style**: `(styles: VNodeStyle) => Content`
+* **style**: `(styles: VNodeStyle) => TagData`
 
   Set some styles
 
   ```typescript
-     toHTML(tag('div', S.style({display: 'inline-block', textTransform: 'uppercase'})))
+     toHTML(tag('div', s.style({display: 'inline-block', textTransform: 'uppercase'})))
      // => '<div style="display: inline-block; text-transform: uppercase"></div>'
   ```
-* **attrs**: `(attrs: Record<string, string | number | boolean>) => Content`
+* **css**: `(styles: VNodeStyle) => TagData`
+
+  
+* **attrs**: `(attrs: Record<string, string | number | boolean>) => TagData`
 
   Set some attributes
 
   ```typescript
-     toHTML(tag('div', S.attrs({example: 1})))
+     toHTML(tag('div', s.attrs({example: 1})))
      // => '<div example="1"></div>'
   ```
 
   ```typescript
-     toHTML(tag('div', S.attrs({a: 1, b: 2}), S.attrs({c: 3})))
+     toHTML(tag('div', s.attrs({a: 1, b: 2}), s.attrs({c: 3})))
      // => '<div a="1" b="2" c="3"></div>'
   ```
 
   ```typescript
-     toHTML(tag('div', S.attrs({a: 1}), S.attrs({a: 2})))
+     toHTML(tag('div', s.attrs({a: 1}), s.attrs({a: 2})))
      // => '<div a="2"></div>'
   ```
-* **key**: `(key: string | number) => Content`
+* **key**: `(key: string | number) => TagData`
 
   Set the key, used to identify elements when diffing
 
   ```typescript
-     tag('div', S.key('example_key')).key
+     tag('div', s.key('example_key')).key
      // => 'example_key'
   ```
-* **on**: `<N extends "abort" | "activate" | "beforeactivate" | "beforecopy" | "beforecut" | "beforedeactivate" | "beforepaste" | "blur" | "canplay" | "canplaythrough" | "change" | "click" | "contextmenu" | "copy" | "cuechange" | "cut" | "dblclick" | "deactivate" | "drag" | "dragend" | "dragenter" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" | "emptied" | "ended" | "error" | "focus" | "input" | "invalid" | "keydown" | "keypress" | "keyup" | "load" | "loadeddata" | "loadedmetadata" | "loadstart" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel" | "MSContentZoom" | "MSManipulationStateChanged" | "paste" | "pause" | "play" | "playing" | "progress" | "ratechange" | "reset" | "scroll" | "seeked" | "seeking" | "select" | "selectstart" | "stalled" | "submit" | "suspend" | "timeupdate" | "volumechange" | "waiting" | "ariarequest" | "command" | "gotpointercapture" | "lostpointercapture" | "MSGestureChange" | "MSGestureDoubleTap" | "MSGestureEnd" | "MSGestureHold" | "MSGestureStart" | "MSGestureTap" | "MSGotPointerCapture" | "MSInertiaStart" | "MSLostPointerCapture" | "MSPointerCancel" | "MSPointerDown" | "MSPointerEnter" | "MSPointerLeave" | "MSPointerMove" | "MSPointerOut" | "MSPointerOver" | "MSPointerUp" | "touchcancel" | "touchend" | "touchmove" | "touchstart" | "webkitfullscreenchange" | "webkitfullscreenerror" | "pointercancel" | "pointerdown" | "pointerenter" | "pointerleave" | "pointermove" | "pointerout" | "pointerover" | "pointerup" | "wheel">(event_name: N) => (h: (e: HTMLElementEventMap[N]) => void) => Content`
+* **on**: `<N extends "abort" | "activate" | "beforeactivate" | "beforecopy" | "beforecut" | "beforedeactivate" | "beforepaste" | "blur" | "canplay" | "canplaythrough" | "change" | "click" | "contextmenu" | "copy" | "cuechange" | "cut" | "dblclick" | "deactivate" | "drag" | "dragend" | "dragenter" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" | "emptied" | "ended" | "error" | "focus" | "input" | "invalid" | "keydown" | "keypress" | "keyup" | "load" | "loadeddata" | "loadedmetadata" | "loadstart" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" | "mouseup" | "mousewheel" | "MSContentZoom" | "MSManipulationStateChanged" | "paste" | "pause" | "play" | "playing" | "progress" | "ratechange" | "reset" | "scroll" | "seeked" | "seeking" | "select" | "selectstart" | "stalled" | "submit" | "suspend" | "timeupdate" | "volumechange" | "waiting" | "ariarequest" | "command" | "gotpointercapture" | "lostpointercapture" | "MSGestureChange" | "MSGestureDoubleTap" | "MSGestureEnd" | "MSGestureHold" | "MSGestureStart" | "MSGestureTap" | "MSGotPointerCapture" | "MSInertiaStart" | "MSLostPointerCapture" | "MSPointerCancel" | "MSPointerDown" | "MSPointerEnter" | "MSPointerLeave" | "MSPointerMove" | "MSPointerOut" | "MSPointerOver" | "MSPointerUp" | "touchcancel" | "touchend" | "touchmove" | "touchstart" | "webkitfullscreenchange" | "webkitfullscreenerror" | "pointercancel" | "pointerdown" | "pointerenter" | "pointerleave" | "pointermove" | "pointerout" | "pointerover" | "pointerup" | "wheel">(event_name: N) => (h: (e: HTMLElementEventMap[N]) => void) => TagData`
 
   Insert an event handler which is in the `HTMLElementEventMap`
 
   ```typescript
      tag('div',
-       S.on('keydown')((e: KeyboardEvent) => {
+       s.on('keydown')((e: KeyboardEvent) => {
          console.log('You pressed', e.char)})
      ).data.on.keydown !== undefined
      // => true
   ```
-* **on_**: `(event_name: string, h: (e: Event) => void) => Content`
+* **on_**: `(event_name: string, h: (e: Event) => void) => TagData`
 
   Insert an event handler with any name
 
   ```typescript
      tag('div',
-       S.on_('keydown', (e: Event) => {
+       s.on_('keydown', (e: Event) => {
          console.log('You pressed', (e as KeyboardEvent).char)})
      ).data.on.keydown !== undefined
      // => true
   ```
-* **hook**: `<N extends "pre" | "init" | "create" | "insert" | "prepatch" | "update" | "postpatch" | "destroy" | "remove" | "post">(hook_name: N) => (h: Hooks[N]) => Content`
+* **hook**: `<N extends "pre" | "init" | "create" | "insert" | "prepatch" | "update" | "postpatch" | "destroy" | "remove" | "post">(hook_name: N) => (h: Hooks[N]) => TagData`
 
   Insert a `snabbdom` hook
 
   ```typescript
      tag('div',
-       S.hook('insert')(
+       s.hook('insert')(
          (vn: VNode) =>
            console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
      ).data.hook.insert !== undefined
      // => true
   ```
-* **hooks**: `(hooks: Hooks) => Content`
+* **hooks**: `(hooks: Hooks) => TagData`
 
   Insert `snabbdom` hooks
 
   ```typescript
      tag('div',
-       S.hooks({
+       s.hooks({
          insert: (vn: VNode) =>
            console.log('inserted vnode', vn, 'associated with dom element', vn.elm)})
      ).data.hook.insert !== undefined
      // => true
   ```
-* **props**: `(props: Record<string, any>) => Content`
+* **props**: `(props: Record<string, any>) => TagData`
 
   Set some properties (ambient data attached to dom nodes)
 
   ```typescript
-     tag('div', S.props({example: 1})).data.props
+     tag('div', s.props({example: 1})).data.props
      // => {example: 1}
   ```
 
   ```typescript
-     tag('div', S.props({a: 1, b: 2}), S.props({c: 3})).data.props
+     tag('div', s.props({a: 1, b: 2}), s.props({c: 3})).data.props
      // => {a: 1, b: 2, c: 3}
   ```
 
   ```typescript
-     tag('div', S.props({a: 1}), S.props({a: 2})).data.props
+     tag('div', s.props({a: 1}), s.props({a: 2})).data.props
      // => {a: 2}
   ```
-* **dataset**: `(dataset: Record<string, string>) => Content`
+* **dataset**: `(dataset: Record<string, string>) => TagData`
 
   Set data attribute
 
   ```typescript
-     tag('div', S.dataset({foo: 'bar'})).data.dataset.foo
+     tag('div', s.dataset({foo: 'bar'})).data.dataset.foo
      // => 'bar'
   ```
-* **Input**: `(store: Store<string>, onEnter?: () => void, ...content: Array<Content>) => vnode.VNode`
+* **input**: `(store: Store<string>, onEnter?: () => void, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **Checkbox**: `(store: Store<boolean>, ...content: Array<Content>) => vnode.VNode`
+* **checkbox**: `(store: Store<boolean>, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **Button**: `(onClick: () => void, label?: string, ...content: Array<Content>) => vnode.VNode`
+* **button**: `(onClick: () => void, label?: string, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **Textarea**: `(store: Store<string>, rows?: number, cols?: number, ...content: Array<Content>) => vnode.VNode`
+* **textarea**: `(store: Store<string>, rows?: number, cols?: number, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **Select**: `(stored: Store<string>, keys: Store<Array<string>>, option: (key: string, index: number) => vnode.VNode, ...content: Array<Content>) => vnode.VNode`
+* **select**: `(stored: Store<string>, keys: Store<Array<string>>, option: (key: string, index: number) => vnode.VNode, ...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **Content**: `typeof Content`
+* **TagData**: `undefined`
 
   Content to put in a `tag` 
 * **h**: `{ (sel: string): vnode.VNode; (sel: string, data: vnode.VNodeData): vnode.VNode; (sel: string, text: string): vnode.VNode; (sel: string, children: Array<vnode.VNode>): vnode.VNode; (sel: string, data: vnode.VNodeData, text: string): vnode.VNode; (sel: string, data: vnode.VNodeData, children: Array<vnode.VNode>): vnode.VNode; }`
@@ -351,64 +357,95 @@
   The type of a snabbdom patch, create one with snabbdom.init 
 ### module tags
 
+Common tags
 
-* **factory**: `(name: string) => (...content: Array<Content>) => vnode.VNode`
+Example usage:
 
-  
-* **div**: `(...content: Array<Content>) => vnode.VNode`
-
-  
-* **span**: `(...content: Array<Content>) => vnode.VNode`
-
-  
-* **table**: `(...content: Array<Content>) => vnode.VNode`
+```typescript
+import { tags } from "snabbis"
+const {div, span, h1} = tags
+```
+* **factory**: `(name: string) => (...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **tbody**: `(...content: Array<Content>) => vnode.VNode`
+* **div**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **thead**: `(...content: Array<Content>) => vnode.VNode`
+* **span**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **tfoot**: `(...content: Array<Content>) => vnode.VNode`
+* **p**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **tr**: `(...content: Array<Content>) => vnode.VNode`
+* **pre**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **td**: `(...content: Array<Content>) => vnode.VNode`
+* **em**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **th**: `(...content: Array<Content>) => vnode.VNode`
+* **strong**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h1**: `(...content: Array<Content>) => vnode.VNode`
+* **b**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h2**: `(...content: Array<Content>) => vnode.VNode`
+* **i**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h3**: `(...content: Array<Content>) => vnode.VNode`
+* **u**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h4**: `(...content: Array<Content>) => vnode.VNode`
+* **strike**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h5**: `(...content: Array<Content>) => vnode.VNode`
+* **small**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **h6**: `(...content: Array<Content>) => vnode.VNode`
+* **table**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **li**: `(...content: Array<Content>) => vnode.VNode`
+* **tbody**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **ul**: `(...content: Array<Content>) => vnode.VNode`
+* **thead**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **ol**: `(...content: Array<Content>) => vnode.VNode`
+* **tfoot**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   
-* **S**: `typeof Content`
+* **tr**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **td**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **th**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h1**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h2**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h3**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h4**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h5**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **h6**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **li**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **ul**: `(...tag_data: Array<TagData>) => vnode.VNode`
+
+  
+* **ol**: `(...tag_data: Array<TagData>) => vnode.VNode`
 
   

@@ -20,7 +20,7 @@
     "snabbdom-to-html": "^3.1.1"
   },
   "scripts": {
-    "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, S, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",
+    "pretest": "> test/snabbis.doctest.ts typescript-doctest src/*.ts -s 'import { tag, s, VNode } from \"../src/snabbis\"' -s 'const toHTML = require(\"snabbdom-to-html\")' -t && tsc test/*.ts",
     "test": "tape test/*js | tap-diff",
     "precoverage": "tsc test/*.ts",
     "coverage": "covert test/*js",
