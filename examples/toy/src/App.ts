@@ -1,4 +1,5 @@
-import { tag, Content as S, VNode } from "snabbis"
+import { tag, s, TagData } from "snabbis"
+import { VNode } from "snabbdom/vnode"
 import { Store, Lens, Undo } from "reactive-lens"
 
 export interface State {
@@ -13,6 +14,7 @@ export interface Slides {
     b: string,
   },
   table: Undo<Table>,
+  order: string,
 }
 
 export interface Table {
@@ -38,10 +40,11 @@ export const init: State = {
         {word: ".", pos:"MAD", msd:"MAD", lemma:"|", lex:"|", saldo:"|", prefix:"|", suffix:"|", ref:"5", dephead:"2", deprel:"IP"},
       ]
     })),
-  }
+    order: "1, 5, 2, 4, 3",
+  },
 }
 
-const slides = 6
+const slides = 7
 
 const json = (x: any) => JSON.stringify(x, undefined, 2)
 
@@ -66,6 +69,32 @@ function Views(slide: number, store: Store<Slides>): VNode {
           Button(() => history.modify(Undo.redo), 'redo')
         ),
         Textarea(history)))
+    case 6:
+      const order = store.at('order')
+      const xs = (order.get().match(/\d+/g) || []).map(d => parseInt(d))
+      return (
+        tag('div',
+          s.input(store.at('order'), undefined),
+          tag('div',
+            s.style({display: 'flex'}),
+            xs.map((x, i) =>
+              tag('div',
+                s.style({order: x.toString()}),
+                (i + 1).toString(),
+                s.style({
+                  width: '50px',
+                  height: '40px',
+                  margin: '10px',
+                  padding: '10px',
+                  paddingTop: '20px',
+                  background: '#ab2399',
+                  color: 'white',
+                  fontWeight: '600',
+                  fontSize: '50px',
+                  transitionProperty: 'order',
+                  transitionDuration: '1s',
+                  transitionTimingFunction: 'linear',
+                }))))))
     default: return tag('div', 'no more slides!')
   }
 }
@@ -79,7 +108,7 @@ function Tabulate(history: Store<Undo<Table>>) {
       history.modify(Undo.advance)
     }
   }
-  const blur_advance = S.on('blur')(advance)
+  const blur_advance = s.on('blur')(advance)
   return tag('table',
     tag('thead',
       tag('tr',
@@ -121,7 +150,7 @@ function Tabulate(history: Store<Undo<Table>>) {
                       .via(Lens.def('')),
                     blur_advance))))),
       tag('tr',
-        tag('td', S.attrs({colspan: headers.length + 1}),
+        tag('td', s.attrs({colspan: headers.length + 1}),
           Button(() => store.transaction(() => {
               advance()
               Store.arr(store.at('table'), 'push')({})
@@ -129,43 +158,43 @@ function Tabulate(history: Store<Undo<Table>>) {
             '+')))))
 }
 
-function Button(cb: () => void, label: string = '', ...bs: S[]) {
+function Button(cb: () => void, label: string = '', ...bs: TagData[]) {
   return tag('input',
-    S.attrs({
+    s.attrs({
       'type': 'button',
       value: label
     }),
-    S.on('click')(cb),
+    s.on('click')(cb),
     ...bs)
  }
 
-const CatchSubmit = (cb: () => void, ...bs: S[]) =>
+const CatchSubmit = (cb: () => void, ...bs: TagData[]) =>
   tag('form',
-    S.on('submit')((e: Event) => {
+    s.on('submit')((e: Event) => {
         cb()
         e.preventDefault()
       }),
     ...bs)
 
-const InputField = (store: Store<string>, ...bs: S[]) =>
+const InputField = (store: Store<string>, ...bs: TagData[]) =>
   tag('input',
-    S.props({ value: store.get() }),
-    S.on('input')((e: Event) =>
+    s.props({ value: store.get() }),
+    s.on('input')((e: Event) =>
       store.set((e.target as HTMLInputElement).value)),
     ...bs)
 
-const CheckBox = (store: Store<boolean>, ...bs: S[]) =>
+const CheckBox = (store: Store<boolean>, ...bs: TagData[]) =>
   tag('input',
-    S.attrs({ type: 'checkbox' }),
-    S.props({ value: store.get() }),
-    S.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value == 'true')),
+    s.attrs({ type: 'checkbox' }),
+    s.props({ value: store.get() }),
+    s.on('input')((e: Event) => store.set((e.target as HTMLInputElement).value == 'true')),
     ...bs)
 
-const Textarea = (store: Store<any>, ...bs: S[]) =>
+const Textarea = (store: Store<any>, ...bs: TagData[]) =>
   tag('textarea',
-    S.props({value: json(store.get())}),
-    S.attrs({rows: 10, cols: 60}),
-    S.on('input')((e: Event) => {
+    s.props({value: json(store.get())}),
+    s.attrs({rows: 10, cols: 60}),
+    s.on('input')((e: Event) => {
       try {
         const obj = JSON.parse((e.target as any).value)
         store.set(obj)
@@ -174,7 +203,6 @@ const Textarea = (store: Store<any>, ...bs: S[]) =>
       }
     })
   )
-
 
 export const App = (root: Store<State>) => {
   const global = window as any
@@ -193,7 +221,9 @@ export const App = (root: Store<State>) => {
   store.storage_connect('toy')
   root.at('slide').location_connect(to_hash, from_hash)
   // store.on(x => console.log(JSON.stringify(x, undefined, 2))),
-  return () => tag('div .Slide' + root.at('slide').get(), Views(root.at('slide').get(), store))
+  return () => tag(
+    'div .Slide' + root.at('slide').get(),
+    Views(root.at('slide').get(), store))
 }
 
 function from_hash(hash: string): number | undefined {

@@ -1,4 +1,4 @@
-import { tag, Content as S } from "snabbis"
+import { tag, s, TagData } from "snabbis"
 import { Store, Lens, Omit } from "reactive-lens"
 import { VNode } from "snabbdom/vnode"
 import * as Model from "./Model"
@@ -8,12 +8,12 @@ export {Model}
 
 // actually not a checkbox
 const Checkbox =
-  (value: boolean, update: (new_value: boolean) => void, ...ss: S[]) =>
+  (value: boolean, update: (new_value: boolean) => void, ...ss: TagData[]) =>
   tag('span',
-    S.classes({checked: value}),
-    S.on('click')((_: MouseEvent) => update(!value)),
-    S.on('input')((_: Event) => update(!value)),
-    S.style({cursor: 'pointer'}),
+    s.classes({checked: value}),
+    s.on('click')((_: MouseEvent) => update(!value)),
+    s.on('input')((_: Event) => update(!value)),
+    s.style({cursor: 'pointer'}),
     ...ss)
 
 export const App = (store: Store<State>) => {
@@ -33,41 +33,41 @@ export const View = (store: Store<State>): VNode => {
   const Header =
     tag('header .header',
       tag('h1', 'todos'),
-      S.Input(
+      s.input(
         store.at('new_input'),
         () => store.modify(Model.new_todo),
-        S.attrs({
+        s.attrs({
           placeholder: 'What needs to be done?',
           autofocus: true
         }),
-        S.classed('new-todo')))
+        s.classed('new-todo')))
 
   const TodoView =
     (todo_store: Store<Todo>, {completed, text, editing, id}: Todo, rm: () => void) =>
       tag('li .todo',
-        S.key(id),
-        S.classes({ completed, editing }),
+        s.key(id),
+        s.classes({ completed, editing }),
         tag('div',
-          S.classes({ view: !editing }),
+          s.classes({ view: !editing }),
           Checkbox(
             completed,
             (v) => todo_store.at('completed').set(v),
-            S.classed('toggle'),
-            S.style({height: '40px'})),
+            s.classed('toggle'),
+            s.style({height: '40px'})),
           editing || tag('label',
             text,
-            S.style({cursor: 'pointer'}),
-            S.on('dblclick')((e: MouseEvent) => {
+            s.style({cursor: 'pointer'}),
+            s.on('dblclick')((e: MouseEvent) => {
               todo_store.at('editing').set(true)
             }),
           ),
           editing &&
-            S.Input(
+            s.input(
               todo_store.at('text'),
               () => todo_store.at('editing').set(false),
-              S.classed('edit'),
-              S.on('blur')(() => todo_store.at('editing').set(false))),
-          tag('button .destroy', S.on('click')(rm))),
+              s.classed('edit'),
+              s.on('blur')(() => todo_store.at('editing').set(false))),
+          tag('button .destroy', s.on('click')(rm))),
         )
 
   const Main =
@@ -76,8 +76,8 @@ export const View = (store: Store<State>): VNode => {
       Checkbox(
         Model.all_completed(todos),
         (b: boolean) => todos_store.modify(Model.set_all(!b)),
-        S.classed('toggle-all'),
-        S.id('toggle-all')),
+        s.classed('toggle-all'),
+        s.id('toggle-all')),
       tag('ul .todo-list',
         Store.each(todos_store).map(
           (ref, i) => {
@@ -95,8 +95,8 @@ export const View = (store: Store<State>): VNode => {
         Model.visibilites.map((opt: Visibility) =>
           tag('li',
             tag('a',
-              S.classes({selected: visibility == opt}),
-              S.attrs({href: '#/' + opt}),
+              s.classes({selected: visibility == opt}),
+              s.attrs({href: '#/' + opt}),
               opt)))))
 
   // todo: clear completed
