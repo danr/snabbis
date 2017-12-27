@@ -13,6 +13,8 @@ export interface Slides {
     a: string,
     b: string,
   },
+  fluff: number,
+  rfluff: number,
   table: Undo<Table>,
   order: string,
 }
@@ -30,6 +32,8 @@ export const init: State = {
       a: "",
       b: ""
     },
+    fluff: 100,
+    rfluff: 100,
     table: Undo.advance(Undo.init({
       headers: ["word", "pos"],
       table: [
@@ -48,12 +52,43 @@ const slides = 7
 
 const json = (x: any) => JSON.stringify(x, undefined, 2)
 
+function range(n: number): number[] {
+  const out = [] as number[]
+  for (let i = 0; i < n; ++i) {
+    out.push(i)
+  }
+  return out
+}
+
 function Views(slide: number, store: Store<Slides>): VNode {
   const input = store.at('input')
   const table = store.at('table').at('now')
   const history = store.at('table')
   switch (slide) {
-    case 0: return tag('span', store.at('title').get())
+    // case 0: return tag('span', store.at('title').get())
+    case 0: return tag('div',
+      s.css({
+        height: '100%',
+        fontSize: '16px',
+        lineHeight: '21px',
+        display: 'flex'
+      }),
+      tag('div', s.css({flexGrow: '1', flexBasis: '0'}),
+        range(store.at('fluff').get()).join(' '),
+        s.css({
+          border: '1px blue solid',
+          margin: '5px'
+        })
+      ),
+      tag('div', s.css({flexGrow: '1', flexBasis: '0'}),
+        range(store.at('rfluff').get()).join(' '),
+        s.css({
+          height: 'calc(100vh - 12px)',
+          overflowY: 'scroll',
+          border: '1px red solid',
+          margin: '5px'
+        })),
+    )
     case 1: return tag('div',
       tag('div', 'textrutan: ', InputField(input.at('a'))),
       tag('div', 'annat: ', InputField(input.at('b')))
@@ -214,26 +249,18 @@ export const App = (root: Store<State>) => {
   global.root = root
   global.slide = root.at('slide')
   global.store = store
-  global.title_store = store.at('title')
-  global.ab_store = store.at('input')
-  global.table_store = store.at('table').at('now')
-  global.history_store = store.at('table')
+  global.fluff = store.at('fluff')
+  global.rfluff = store.at('rfluff')
   store.storage_connect('toy')
-  root.at('slide').location_connect(to_hash, from_hash)
+  store.at('fluff').location_connect(to_hash, from_hash)
   // store.on(x => console.log(JSON.stringify(x, undefined, 2))),
-  return () => tag(
-    'div .Slide' + root.at('slide').get(),
-    Views(root.at('slide').get(), store))
+  return () => Views(0, store)
 }
 
 function from_hash(hash: string): number | undefined {
   const n = parseInt(hash.slice(1))
   console.log(hash, n, slides)
-  if (n >= 0 && n < slides) {
-    return n
-  } else {
-    return undefined
-  }
+  return n
 }
 
 function to_hash(slide: number): string {
