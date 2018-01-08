@@ -18,41 +18,9 @@ import { Attrs } from 'snabbdom/modules/attributes'
 
 import { VNode } from "snabbdom/vnode"
 import { Store } from "reactive-lens"
+import * as RL from "reactive-lens"
 
 type Patcher = (vnode: VNode) => void
-
-function connect<S>(patcher: Patcher, store: Store<S>, setup_view: (store: Store<S>) => () => VNode): () => void {
-  const view = setup_view(store)
-  function redraw() {
-    store.transaction(() => {
-      patcher(view())
-    })
-  }
-  const off = store.on(redraw)
-  redraw()
-  return off
-}
-
-function setup(patch: Patch, root: HTMLElement): Patcher {
-  while (root.lastChild) {
-    root.removeChild(root.lastChild)
-  }
-
-  const container = document.createElement('div')
-  root.appendChild(container)
-  let vnode = patch(container, snabbdom.h('div'))
-
-  return new_vnode => { vnode = patch(vnode, new_vnode) }
-}
-
-const full_patch = snabbdom.init([
-  snabbdom_style,
-  snabbdom_eventlisteners,
-  snabbdom_class,
-  snabbdom_props,
-  snabbdom_dataset,
-  snabbdom_attributes,
-])
 
 /** Attach a view to a reactive lens store initialized at some state.
 
@@ -80,18 +48,24 @@ Suggested usage:
 ```
 
 Returns the reattach function. */
-export function attach<S>(root: HTMLElement, init_state: S, setup_view: (store: Store<S>) => () => VNode, patch: Patch = full_patch): (setup_next_view: (store: Store<S>) => () => VNode) => void {
-  const patcher = setup(patch, root)
-  let store = Store.init(init_state)
-  let off = connect(patcher, store, setup_view)
-  return setup_next_view => {
-    off()
-    store = Store.init(store.get())
-    off = connect(patcher, store, setup_next_view)
-  }
+export function attach<S>(root: HTMLElement, init_state: S, setup_view: (store: Store<S>) => () => VNode): (setup_next_view: (store: Store<S>) => () => VNode) => void {
+  return RL.attach(render(root), init_state, setup_view)
 }
 
-
+export function render(root: HTMLElement, patch = snabbdom.init([
+    snabbdom_style,
+    snabbdom_eventlisteners,
+    snabbdom_class,
+    snabbdom_props,
+    snabbdom_dataset,
+    snabbdom_attributes,
+  ])
+): (vnode: VNode) => void {
+  const container = document.createElement('div')
+  root.appendChild(container)
+  let vnode = patch(container, snabbdom.h('div'))
+  return new_vnode => { vnode = patch(vnode, new_vnode) }
+}
 
 /**
 Make a VNode
